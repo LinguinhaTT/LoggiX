@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary: #0d9488;
+  --color-primary-light: #2dd4bf;
+  --color-primary-hover: #0f766e;
+
+  --color-sidebar: #1a1d2e;
+  --color-auth-right: #1e2a4a;
+  --color-content-bg: #f5f6fa;
+
+  --color-orange-alert: #f97316;
+  --color-blue-alert: #3b82f6;
+
+  --color-badge-pending: #f59e0b;
+  --color-badge-posted: #3b82f6;
+  --color-badge-transit: #60a5fa;
+  --color-badge-delivering: #10b981;
+  --color-badge-failed: #ef4444;
+  --color-badge-delivered: #0d9488;
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f5f6fa;
+  font-family: var(--font-sans);
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-item-active {
+  background: rgba(13, 148, 136, 0.15);
+  border-left: 3px solid #0d9488;
+  color: #ffffff;
+}
+
+.sidebar-item {
+  border-left: 3px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+select,
+textarea {
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.btn-primary {
+  background-color: #0d9488;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background-color: #0f766e;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(13, 148, 136, 0.2);
+  border-top-color: #0d9488;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
