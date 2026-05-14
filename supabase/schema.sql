@@ -144,3 +144,35 @@ CREATE TRIGGER set_trackings_updated_at
 CREATE TRIGGER set_tickets_updated_at
   BEFORE UPDATE ON public.support_tickets
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+-- ============================================================
+-- TRIGGER: criar perfil automaticamente ao registrar usuário
+-- (garante 3 créditos mesmo com email confirmation ativado)
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, name, email, phone, credits, referral_code, referred_by)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'phone', NULL),
+    3,
+    COALESCE(
+      NEW.raw_user_meta_data->>'referral_code',
+      upper(substring(encode(gen_random_bytes(4), 'hex'), 1, 8))
+    ),
+    NULLIF(NEW.raw_user_meta_data->>'referred_by', '')
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    name         = EXCLUDED.name,
+    phone        = EXCLUDED.phone,
+    referred_by  = COALESCE(public.profiles.referred_by, EXCLUDED.referred_by);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

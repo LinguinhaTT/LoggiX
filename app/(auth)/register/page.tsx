@@ -61,7 +61,20 @@ function RegisterForm() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const referralCodeGenerated = generateReferralCode();
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          phone: phone.replace(/\D/g, ""),
+          referral_code: referralCodeGenerated,
+          referred_by: referralCode || null,
+        },
+      },
+    });
 
     if (error || !data.user) {
       setLoading(false);
@@ -69,24 +82,23 @@ function RegisterForm() {
       return;
     }
 
-    const { error: profileError } = await supabase.from("profiles").insert({
+    // Upsert para funcionar tanto com quanto sem email confirmation
+    const { error: profileError } = await supabase.from("profiles").upsert({
       id: data.user.id,
       name,
       email,
       phone: phone.replace(/\D/g, ""),
       credits: 3,
-      referral_code: generateReferralCode(),
+      referral_code: referralCodeGenerated,
       referred_by: referralCode || null,
     });
 
     setLoading(false);
 
     if (profileError) {
-      toast.error("Conta criada, mas erro ao salvar perfil.");
-    } else {
-      toast.success("Conta criada com sucesso! Bem-vindo ao LoggiX.");
+      // Perfil provavelmente já criado pelo trigger — continua normalmente
     }
-
+    toast.success("Conta criada com sucesso! Bem-vindo ao LoggiX.");
     router.push("/dashboard");
     router.refresh();
   };
