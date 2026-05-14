@@ -39,7 +39,7 @@ export default function PartnershipPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Programa de Parceria</h1>
         <p className="text-sm text-gray-500">
-          Torne-se um parceiro DiaLOG e ganhe comissões por cada indicação convertida
+          Torne-se um parceiro LoggiX e ganhe comissões por cada indicação convertida
         </p>
       </div>
 
@@ -54,7 +54,7 @@ export default function PartnershipPage() {
         >
           <Handshake className="w-8 h-8" style={{ color: "#2dd4bf" }} />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Seja um Parceiro DiaLOG</h2>
+        <h2 className="text-2xl font-bold mb-2">Seja um Parceiro LoggiX</h2>
         <p className="text-gray-300 max-w-lg mx-auto text-sm mb-6">
           Indique clientes e ganhe comissões recorrentes em cada recarga realizada.
           Quanto mais você indica, maior sua comissão.

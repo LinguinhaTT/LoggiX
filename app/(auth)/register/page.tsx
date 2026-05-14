@@ -84,7 +84,7 @@ function RegisterForm() {
     if (profileError) {
       toast.error("Conta criada, mas erro ao salvar perfil.");
     } else {
-      toast.success("Conta criada com sucesso! Bem-vindo ao DiaLOG.");
+      toast.success("Conta criada com sucesso! Bem-vindo ao LoggiX.");
     }
 
     router.push("/dashboard");
@@ -104,7 +104,7 @@ function RegisterForm() {
               <Navigation className="w-4 h-4" style={{ color: "#0d9488" }} />
             </div>
             <span className="font-bold text-lg">
-              Dia<span style={{ color: "#0d9488" }}>LOG</span>
+              Loggi<span style={{ color: "#0d9488" }}>X</span>
             </span>
           </div>
 

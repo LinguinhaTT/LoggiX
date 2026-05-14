@@ -22,7 +22,7 @@ const features = [
   {
     icon: Truck,
     title: "Múltiplas Transportadoras",
-    desc: "Suporte para DiaLOG, Loggi, Jadlog, Correios e muito mais.",
+    desc: "Suporte para LoggiX, Loggi, Jadlog, Correios e muito mais.",
     color: "#3b82f6",
   },
   {
@@ -67,7 +67,7 @@ export default function LandingPage() {
               <Navigation className="w-4 h-4" style={{ color: "#0d9488" }} />
             </div>
             <span className="font-bold text-xl">
-              Dia<span style={{ color: "#0d9488" }}>LOG</span>
+              Loggi<span style={{ color: "#0d9488" }}>X</span>
             </span>
           </div>
           <div className="flex items-center gap-4">
@@ -221,7 +221,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Navigation className="w-5 h-5" style={{ color: "#0d9488" }} />
             <span className="font-bold text-gray-900">
-              Dia<span style={{ color: "#0d9488" }}>LOG</span>
+              Loggi<span style={{ color: "#0d9488" }}>X</span>
             </span>
             <span className="text-gray-400 text-sm ml-2">© 2026</span>
           </div>

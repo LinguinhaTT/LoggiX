@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
               <Navigation className="w-4 h-4" style={{ color: "#0d9488" }} />
             </div>
             <span className="font-bold text-lg">
-              Dia<span style={{ color: "#0d9488" }}>LOG</span>
+              Loggi<span style={{ color: "#0d9488" }}>X</span>
             </span>
           </div>
 

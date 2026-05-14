@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "DiaLOG - Sistema de Rastreamento de Entregas para E-commerce",
+  title: "LoggiX - Sistema de Rastreamento de Entregas para E-commerce",
   description:
     "Gerencie seus envios com facilidade. Crie rastreios personalizados, acompanhe entregas em tempo real e gere notas fiscais simplificadas.",
 };

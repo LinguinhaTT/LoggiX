@@ -72,7 +72,7 @@ export default async function TrackingPublicPage({
               <Navigation className="w-4 h-4" style={{ color: "#0d9488" }} />
             </div>
             <span className="font-bold text-lg">
-              Dia<span style={{ color: "#0d9488" }}>LOG</span>
+              Loggi<span style={{ color: "#0d9488" }}>X</span>
             </span>
           </Link>
           <Link
@@ -266,7 +266,7 @@ export async function generateMetadata({
 }) {
   const { code } = await params;
   return {
-    title: `Rastreamento ${code} — DiaLOG`,
+    title: `Rastreamento ${code} — LoggiX`,
     description: `Acompanhe o status da sua entrega com o código ${code}`,
   };
 }

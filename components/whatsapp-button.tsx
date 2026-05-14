@@ -2,7 +2,7 @@
 
 export default function WhatsAppButton() {
   const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5511999999999";
-  const message = encodeURIComponent("Olá! Preciso de ajuda com o DiaLOG.");
+  const message = encodeURIComponent("Olá! Preciso de ajuda com o LoggiX.");
 
   return (
     <a

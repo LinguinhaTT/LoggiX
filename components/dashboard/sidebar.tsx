@@ -112,7 +112,7 @@ export default function Sidebar({ user }: SidebarProps) {
         </div>
         {!collapsed && (
           <span className="font-bold text-lg tracking-tight whitespace-nowrap">
-            Dia<span style={{ color: "#2dd4bf" }}>LOG</span>
+            Loggi<span style={{ color: "#2dd4bf" }}>X</span>
           </span>
         )}
       </div>

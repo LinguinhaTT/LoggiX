@@ -28,7 +28,7 @@ function formatZip(value: string): string {
 }
 
 const carriers = [
-  "DiaLOG",
+  "LoggiX",
   "Loggi",
   "Jadlog",
   "Correios",
@@ -43,7 +43,7 @@ export default function NewTrackingPage() {
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
   const [zipCode, setZipCode] = useState("");
-  const [carrier, setCarrier] = useState("DiaLOG");
+  const [carrier, setCarrier] = useState("LoggiX");
   const [carrierCode, setCarrierCode] = useState("");
   const [productDescription, setProductDescription] = useState("");
   const [loading, setLoading] = useState(false);
