@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { User, Mail, Phone, Lock, Eye, EyeOff, Navigation, Gift } from "lucide-react";
+import { User, Mail, Phone, Lock, Eye, EyeOff, Navigation, Gift, CheckCircle, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 
@@ -31,6 +31,9 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [confirmed, setConfirmed] = useState(false); // email confirmation pending
+  const [registeredEmail, setRegisteredEmail] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -83,7 +86,7 @@ function RegisterForm() {
     }
 
     // Upsert para funcionar tanto com quanto sem email confirmation
-    const { error: profileError } = await supabase.from("profiles").upsert({
+    await supabase.from("profiles").upsert({
       id: data.user.id,
       name,
       email,
@@ -95,13 +98,129 @@ function RegisterForm() {
 
     setLoading(false);
 
-    if (profileError) {
-      // Perfil provavelmente já criado pelo trigger — continua normalmente
+    if (!data.session) {
+      // Email confirmation required — show confirmation screen
+      setRegisteredEmail(email);
+      setConfirmed(true);
+      return;
     }
+
     toast.success("Conta criada com sucesso! Bem-vindo ao LoggiX.");
     router.push("/dashboard");
     router.refresh();
   };
+
+  const handleResend = async () => {
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: registeredEmail,
+    });
+    setResending(false);
+    if (error) {
+      toast.error("Erro ao reenviar. Aguarde alguns minutos e tente novamente.");
+    } else {
+      toast.success("E-mail reenviado! Verifique sua caixa de entrada.");
+    }
+  };
+
+  if (confirmed) {
+    return (
+      <div className="flex min-h-screen">
+        {/* Left */}
+        <div className="flex-1 flex flex-col items-center justify-center bg-white p-8">
+          <div className="w-full max-w-sm">
+            <div className="flex items-center gap-2 mb-8">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: "rgba(13,148,136,0.12)" }}
+              >
+                <Navigation className="w-4 h-4" style={{ color: "#0d9488" }} />
+              </div>
+              <span className="font-bold text-lg">
+                Loggi<span style={{ color: "#0d9488" }}>X</span>
+              </span>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.10)] p-8 text-center">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+                style={{ backgroundColor: "rgba(13,148,136,0.1)" }}
+              >
+                <CheckCircle className="w-8 h-8" style={{ color: "#0d9488" }} />
+              </div>
+
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Verifique seu e-mail!
+              </h1>
+              <p className="text-sm text-gray-500 mb-1">
+                Enviamos um link de confirmação para:
+              </p>
+              <p className="text-sm font-semibold text-gray-800 mb-6 break-all">
+                {registeredEmail}
+              </p>
+
+              <div
+                className="rounded-xl p-4 mb-6 text-left"
+                style={{ backgroundColor: "rgba(13,148,136,0.06)", border: "1px solid rgba(13,148,136,0.15)" }}
+              >
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Clique no link enviado para ativar sua conta e acessar o painel.
+                  Verifique também a pasta de <strong>spam</strong> ou{" "}
+                  <strong>lixo eletrônico</strong>.
+                </p>
+              </div>
+
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+              >
+                {resending ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    Reenviando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Reenviar e-mail
+                  </>
+                )}
+              </button>
+
+              <p className="mt-5 text-xs text-gray-400">
+                Após confirmar, acesse{" "}
+                <Link href="/login" className="font-semibold hover:underline" style={{ color: "#0d9488" }}>
+                  fazer login
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right */}
+        <div
+          className="hidden lg:flex flex-1 flex-col items-center justify-center p-12"
+          style={{ backgroundColor: "#1e2a4a" }}
+        >
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center mb-8"
+            style={{ backgroundColor: "#0d9488" }}
+          >
+            <Mail className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-white text-center mb-4">
+            Quase lá!
+          </h2>
+          <p className="text-gray-400 text-center text-sm leading-relaxed max-w-sm">
+            Confirme seu e-mail para ativar sua conta e começar a usar o LoggiX com seus{" "}
+            <span className="text-teal-400 font-semibold">3 créditos gratuitos</span>.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
