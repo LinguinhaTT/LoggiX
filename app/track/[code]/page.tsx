@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { CarrierLogo } from "@/components/carrier-logo";
 import {
   Package,
   CheckCircle,
@@ -231,12 +232,7 @@ export default async function TrackingPublicPage({
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${cfg.color}15` }}
-            >
-              <Truck className="w-5 h-5" style={{ color: cfg.color }} />
-            </div>
+            <CarrierLogo name={tracking.carrier} size="sm" />
             <div className="min-w-0">
               <p className="text-xs text-gray-400">Transportadora</p>
               <p className="text-sm font-semibold text-gray-800 truncate">
