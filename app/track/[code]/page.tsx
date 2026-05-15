@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { AutoRefresh } from "@/components/auto-refresh";
 import {
   Package,
   CheckCircle,
@@ -119,6 +120,7 @@ export default async function TrackingPublicPage({
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
+      <AutoRefresh intervalMs={30000} />
       {/* Hero colorido */}
       <div style={{ background: cfg.gradient }} className="pb-16 pt-0">
         {/* Header */}
