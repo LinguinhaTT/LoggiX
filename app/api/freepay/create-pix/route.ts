@@ -68,7 +68,9 @@ export async function POST(req: NextRequest) {
 
     if (!freepayRes.ok) {
       console.error("FreePay error:", freepayData);
-      return NextResponse.json({ error: "Erro ao gerar PIX na FreePay." }, { status: 500 });
+      return NextResponse.json({
+        error: `FreePay erro ${freepayRes.status}: ${JSON.stringify(freepayData)}`,
+      }, { status: 500 });
     }
 
     // Extrai QR code e URL de pagamento da resposta
