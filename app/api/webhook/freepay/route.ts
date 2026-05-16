@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
       const supabase = await createClient();
 
       // Usa a função SECURITY DEFINER para atualizar sem precisar de sessão
-      await supabase.rpc("confirm_release_fee_payment", {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).rpc("confirm_release_fee_payment", {
         p_transaction_id: Id,
       });
     }
