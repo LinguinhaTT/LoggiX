@@ -56,6 +56,10 @@ export interface Database {
           status: TrackingStatus;
           created_at: string;
           updated_at: string;
+          release_fee: number | null;
+          release_fee_reason: string | null;
+          release_fee_pix: string | null;
+          release_fee_status: "pendente" | "pago" | null;
         };
         Insert: {
           id?: string;
@@ -71,11 +75,19 @@ export interface Database {
           status?: TrackingStatus;
           created_at?: string;
           updated_at?: string;
+          release_fee?: number | null;
+          release_fee_reason?: string | null;
+          release_fee_pix?: string | null;
+          release_fee_status?: "pendente" | "pago" | null;
         };
         Update: {
           carrier_code?: string | null;
           status?: TrackingStatus;
           updated_at?: string;
+          release_fee?: number | null;
+          release_fee_reason?: string | null;
+          release_fee_pix?: string | null;
+          release_fee_status?: "pendente" | "pago" | null;
         };
         Relationships: [];
       };

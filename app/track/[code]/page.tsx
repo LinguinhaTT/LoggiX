@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { CarrierLogo } from "@/components/carrier-logo";
+import { AlertTriangle, Copy } from "lucide-react";
 import {
   Package,
   CheckCircle,
@@ -103,7 +104,7 @@ export default async function TrackingPublicPage({
 
   const { data: tracking } = await supabase
     .from("trackings")
-    .select("id, code, carrier, recipient_name, status, created_at, updated_at, product_description, carrier_code")
+    .select("id, code, carrier, recipient_name, status, created_at, updated_at, product_description, carrier_code, release_fee, release_fee_reason, release_fee_pix, release_fee_status")
     .eq("code", code.toUpperCase())
     .single();
 
@@ -157,6 +158,56 @@ export default async function TrackingPublicPage({
       </div>
 
       <main className="max-w-2xl mx-auto px-6 -mt-8 pb-10 space-y-4">
+
+        {/* Banner de taxa de liberação */}
+        {tracking.release_fee && tracking.release_fee_status === "pendente" && (
+          <div className="rounded-2xl overflow-hidden shadow-lg border-2 border-orange-200">
+            <div className="bg-orange-500 px-5 py-3 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-white flex-shrink-0" />
+              <p className="text-white font-bold text-sm">Ação necessária — Taxa de liberação pendente</p>
+            </div>
+            <div className="bg-orange-50 p-5">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <p className="text-sm font-semibold text-orange-900 mb-1">
+                    {tracking.release_fee_reason}
+                  </p>
+                  <p className="text-xs text-orange-700">
+                    Seu pedido está retido. Para liberação, efetue o pagamento da taxa abaixo.
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs text-orange-600">Valor</p>
+                  <p className="text-2xl font-black text-orange-600">
+                    R$ {tracking.release_fee.toFixed(2).replace(".", ",")}
+                  </p>
+                </div>
+              </div>
+              {tracking.release_fee_pix && (
+                <div className="bg-white rounded-xl p-3 border border-orange-200">
+                  <p className="text-xs font-semibold text-gray-600 mb-1">Chave PIX / Link de pagamento:</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-mono text-gray-800 flex-1 break-all">
+                      {tracking.release_fee_pix}
+                    </p>
+                    <Copy className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {tracking.release_fee && tracking.release_fee_status === "pago" && (
+          <div className="rounded-2xl bg-green-50 border border-green-200 px-5 py-3 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-green-600 text-sm">✓</span>
+            </div>
+            <p className="text-sm font-semibold text-green-800">
+              Taxa de liberação paga — seu pedido será liberado em breve.
+            </p>
+          </div>
+        )}
 
         {/* Timeline card */}
         {tracking.status !== "nao_entregue" && (

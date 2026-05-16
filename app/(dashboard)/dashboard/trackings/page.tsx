@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Search, Filter, Package, Plus, ExternalLink, Copy } from "lucide-react";
+import { Search, Filter, Package, Plus, ExternalLink, Copy, Lock, X, CheckCircle, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { StatusBadge } from "@/components/ui/badge";
 import { PageLoader } from "@/components/ui/spinner";
@@ -20,9 +20,13 @@ type Tracking = {
   recipient_email: string | null;
   status: TrackingStatus;
   created_at: string;
+  release_fee: number | null;
+  release_fee_reason: string | null;
+  release_fee_pix: string | null;
+  release_fee_status: "pendente" | "pago" | null;
 };
 
-const statusOptions: { value: string; label: string }[] = [
+const statusOptions = [
   { value: "", label: "Todos os status" },
   { value: "pendente", label: "Pendente" },
   { value: "postado", label: "Postado" },
@@ -32,24 +36,40 @@ const statusOptions: { value: string; label: string }[] = [
   { value: "entregue", label: "Entregue" },
 ];
 
+const feeReasons = [
+  "Pedido bloqueado na alfândega",
+  "Endereço incorreto ou incompleto",
+  "Ausência na entrega (taxa de reentrega)",
+  "Pacote retido por conferência",
+  "Taxa de armazenagem",
+  "Outro motivo",
+];
+
+type FeeModal = {
+  tracking: Tracking;
+  fee: string;
+  reason: string;
+  pix: string;
+  saving: boolean;
+};
+
 export default function TrackingsPage() {
   const [trackings, setTrackings] = useState<Tracking[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [feeModal, setFeeModal] = useState<FeeModal | null>(null);
   const supabase = createClient();
   const router = useRouter();
 
   const fetchTrackings = useCallback(async () => {
     setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     let query = supabase
       .from("trackings")
-      .select("id, code, carrier_code, carrier, recipient_name, recipient_email, status, created_at")
+      .select("id, code, carrier_code, carrier, recipient_name, recipient_email, status, created_at, release_fee, release_fee_reason, release_fee_pix, release_fee_status")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -69,6 +89,71 @@ export default function TrackingsPage() {
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success("Código copiado!");
+  };
+
+  const openFeeModal = (t: Tracking) => {
+    setFeeModal({
+      tracking: t,
+      fee: t.release_fee ? String(t.release_fee) : "",
+      reason: t.release_fee_reason ?? feeReasons[0],
+      pix: t.release_fee_pix ?? "",
+      saving: false,
+    });
+  };
+
+  const saveFee = async () => {
+    if (!feeModal) return;
+    const feeValue = parseFloat(feeModal.fee.replace(",", "."));
+    if (!feeModal.fee || isNaN(feeValue) || feeValue <= 0) {
+      toast.error("Informe um valor válido.");
+      return;
+    }
+    if (!feeModal.pix.trim()) {
+      toast.error("Informe a chave PIX ou link de pagamento.");
+      return;
+    }
+    setFeeModal((m) => m && { ...m, saving: true });
+
+    const { error } = await supabase
+      .from("trackings")
+      .update({
+        release_fee: feeValue,
+        release_fee_reason: feeModal.reason,
+        release_fee_pix: feeModal.pix.trim(),
+        release_fee_status: "pendente",
+      })
+      .eq("id", feeModal.tracking.id);
+
+    if (error) {
+      toast.error("Erro ao salvar taxa.");
+      setFeeModal((m) => m && { ...m, saving: false });
+      return;
+    }
+    toast.success("Taxa de liberação criada!");
+    setFeeModal(null);
+    fetchTrackings();
+  };
+
+  const removeFee = async (id: string) => {
+    const { error } = await supabase
+      .from("trackings")
+      .update({ release_fee: null, release_fee_reason: null, release_fee_pix: null, release_fee_status: null })
+      .eq("id", id);
+    if (!error) {
+      toast.success("Taxa removida.");
+      fetchTrackings();
+    }
+  };
+
+  const markFeePaid = async (id: string) => {
+    const { error } = await supabase
+      .from("trackings")
+      .update({ release_fee_status: "pago" })
+      .eq("id", id);
+    if (!error) {
+      toast.success("Taxa marcada como paga!");
+      fetchTrackings();
+    }
   };
 
   if (loading) return <PageLoader />;
@@ -111,9 +196,7 @@ export default function TrackingsPage() {
             className="pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-white min-w-[180px]"
           >
             {statusOptions.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
         </div>
@@ -138,8 +221,8 @@ export default function TrackingsPage() {
                   <th className="text-left text-xs font-semibold text-gray-400 uppercase px-5 py-3">Código</th>
                   <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Destinatário</th>
                   <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Transportadora</th>
-                  <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Cód. Rastreio</th>
                   <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Status</th>
+                  <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Taxa</th>
                   <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Data</th>
                   <th className="text-left text-xs font-semibold text-gray-400 uppercase px-4 py-3">Ações</th>
                 </tr>
@@ -150,49 +233,180 @@ export default function TrackingsPage() {
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-sm font-semibold text-gray-800">{t.code}</span>
-                        <button
-                          onClick={() => copyCode(t.code)}
-                          className="text-gray-400 hover:text-gray-600"
-                          title="Copiar código"
-                        >
+                        <button onClick={() => copyCode(t.code)} className="text-gray-400 hover:text-gray-600">
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
                     <td className="px-4 py-3.5">
                       <p className="text-sm text-gray-800 font-medium">{t.recipient_name}</p>
-                      {t.recipient_email && (
-                        <p className="text-xs text-gray-400">{t.recipient_email}</p>
-                      )}
+                      {t.recipient_email && <p className="text-xs text-gray-400">{t.recipient_email}</p>}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-600">{t.carrier}</td>
                     <td className="px-4 py-3.5">
-                      <span className="font-mono text-xs text-gray-500">
-                        {t.carrier_code ?? "—"}
-                      </span>
+                      <StatusBadge status={t.status} />
                     </td>
                     <td className="px-4 py-3.5">
-                      <StatusBadge status={t.status} />
+                      {t.release_fee ? (
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className="text-xs font-bold px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: t.release_fee_status === "pago" ? "#dcfce7" : "#fef3c7",
+                              color: t.release_fee_status === "pago" ? "#166534" : "#92400e",
+                            }}
+                          >
+                            {t.release_fee_status === "pago" ? "✓ Pago" : `R$ ${t.release_fee.toFixed(2)}`}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3.5 text-sm text-gray-500">
                       {new Date(t.created_at).toLocaleDateString("pt-BR")}
                     </td>
                     <td className="px-4 py-3.5">
-                      <a
-                        href={`/track/${t.code}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
-                        style={{ color: "#0d9488" }}
-                      >
-                        Ver página
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/track/${t.code}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
+                          style={{ color: "#0d9488" }}
+                        >
+                          Ver
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <span className="text-gray-200">|</span>
+                        {t.release_fee && t.release_fee_status === "pendente" ? (
+                          <>
+                            <button
+                              onClick={() => markFeePaid(t.id)}
+                              className="text-xs font-medium text-green-600 hover:underline flex items-center gap-0.5"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                              Pago
+                            </button>
+                            <button
+                              onClick={() => removeFee(t.id)}
+                              className="text-xs font-medium text-red-400 hover:underline"
+                            >
+                              Remover
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => openFeeModal(t)}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-orange-500 hover:underline"
+                          >
+                            <Lock className="w-3 h-3" />
+                            Taxa
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de taxa de liberação */}
+      {feeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#fef3c7" }}>
+                  <AlertTriangle className="w-5 h-5 text-orange-500" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Taxa de Liberação</h3>
+                  <p className="text-xs text-gray-500 font-mono">{feeModal.tracking.code}</p>
+                </div>
+              </div>
+              <button onClick={() => setFeeModal(null)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Motivo do bloqueio
+                </label>
+                <select
+                  value={feeModal.reason}
+                  onChange={(e) => setFeeModal((m) => m && { ...m, reason: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white"
+                >
+                  {feeReasons.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Valor da taxa (R$)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">R$</span>
+                  <input
+                    type="text"
+                    value={feeModal.fee}
+                    onChange={(e) => setFeeModal((m) => m && { ...m, fee: e.target.value })}
+                    placeholder="0,00"
+                    className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Chave PIX ou link de pagamento
+                </label>
+                <input
+                  type="text"
+                  value={feeModal.pix}
+                  onChange={(e) => setFeeModal((m) => m && { ...m, pix: e.target.value })}
+                  placeholder="Ex: 11999999999 ou https://..."
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Aparecerá na página do cliente para ele efetuar o pagamento.
+                </p>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-100 rounded-xl p-3">
+                <p className="text-xs text-orange-700 leading-relaxed">
+                  <strong>Atenção:</strong> Ao salvar, o cliente verá um aviso de taxa pendente na página de rastreio com as instruções de pagamento.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 p-6 border-t border-gray-100">
+              <button
+                onClick={() => setFeeModal(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveFee}
+                disabled={feeModal.saving}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-60"
+                style={{ backgroundColor: "#f97316" }}
+              >
+                {feeModal.saving ? "Salvando..." : "Cobrar taxa"}
+              </button>
+            </div>
           </div>
         </div>
       )}
