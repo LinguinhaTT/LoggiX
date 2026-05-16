@@ -49,7 +49,7 @@ type FeeModal = {
   tracking: Tracking;
   fee: string;
   reason: string;
-  pix: string;
+  cpf: string;
   saving: boolean;
 };
 
@@ -96,7 +96,7 @@ export default function TrackingsPage() {
       tracking: t,
       fee: t.release_fee ? String(t.release_fee) : "",
       reason: t.release_fee_reason ?? feeReasons[0],
-      pix: t.release_fee_pix ?? "",
+      cpf: t.release_fee_customer_cpf ?? "",
       saving: false,
     });
   };
@@ -108,28 +108,33 @@ export default function TrackingsPage() {
       toast.error("Informe um valor válido.");
       return;
     }
-    if (!feeModal.pix.trim()) {
-      toast.error("Informe a chave PIX ou link de pagamento.");
+    const cpfClean = feeModal.cpf.replace(/\D/g, "");
+    if (cpfClean.length !== 11) {
+      toast.error("Informe o CPF completo do destinatário.");
       return;
     }
     setFeeModal((m) => m && { ...m, saving: true });
 
-    const { error } = await supabase
-      .from("trackings")
-      .update({
-        release_fee: feeValue,
-        release_fee_reason: feeModal.reason,
-        release_fee_pix: feeModal.pix.trim(),
-        release_fee_status: "pendente",
-      })
-      .eq("id", feeModal.tracking.id);
+    const res = await fetch("/api/freepay/create-pix", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tracking_id: feeModal.tracking.id,
+        amount: feeValue,
+        reason: feeModal.reason,
+        cpf: cpfClean,
+      }),
+    });
 
-    if (error) {
-      toast.error("Erro ao salvar taxa.");
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error(data.error ?? "Erro ao gerar PIX.");
       setFeeModal((m) => m && { ...m, saving: false });
       return;
     }
-    toast.success("Taxa de liberação criada!");
+
+    toast.success("PIX gerado! O cliente já pode ver o QR code.");
     setFeeModal(null);
     fetchTrackings();
   };
@@ -369,17 +374,18 @@ export default function TrackingsPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Chave PIX ou link de pagamento
+                  CPF do destinatário
                 </label>
                 <input
                   type="text"
-                  value={feeModal.pix}
-                  onChange={(e) => setFeeModal((m) => m && { ...m, pix: e.target.value })}
-                  placeholder="Ex: 11999999999 ou https://..."
+                  value={feeModal.cpf}
+                  onChange={(e) => setFeeModal((m) => m && { ...m, cpf: e.target.value })}
+                  placeholder="000.000.000-00"
+                  maxLength={14}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Aparecerá na página do cliente para ele efetuar o pagamento.
+                  Necessário para gerar o PIX via FreePay.
                 </p>
               </div>
 

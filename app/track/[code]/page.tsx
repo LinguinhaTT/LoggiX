@@ -166,14 +166,14 @@ export default async function TrackingPublicPage({
               <AlertTriangle className="w-5 h-5 text-white flex-shrink-0" />
               <p className="text-white font-bold text-sm">Ação necessária — Taxa de liberação pendente</p>
             </div>
-            <div className="bg-orange-50 p-5">
-              <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="bg-orange-50 p-5 space-y-4">
+              <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold text-orange-900 mb-1">
                     {tracking.release_fee_reason}
                   </p>
                   <p className="text-xs text-orange-700">
-                    Seu pedido está retido. Para liberação, efetue o pagamento da taxa abaixo.
+                    Seu pedido está retido. Efetue o pagamento via PIX para liberar.
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
@@ -183,14 +183,29 @@ export default async function TrackingPublicPage({
                   </p>
                 </div>
               </div>
-              {tracking.release_fee_pix && (
+
+              {/* QR Code */}
+              {tracking.release_fee_payment_url && (
+                <a
+                  href={tracking.release_fee_payment_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-xl text-center font-bold text-white text-sm"
+                  style={{ backgroundColor: "#f97316" }}
+                >
+                  Pagar agora →
+                </a>
+              )}
+
+              {/* Copia e cola */}
+              {tracking.release_fee_qr_code && (
                 <div className="bg-white rounded-xl p-3 border border-orange-200">
-                  <p className="text-xs font-semibold text-gray-600 mb-1">Chave PIX / Link de pagamento:</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-mono text-gray-800 flex-1 break-all">
-                      {tracking.release_fee_pix}
+                  <p className="text-xs font-semibold text-gray-500 mb-1.5">PIX Copia e Cola:</p>
+                  <div className="flex items-start gap-2">
+                    <p className="text-xs font-mono text-gray-700 flex-1 break-all leading-relaxed">
+                      {tracking.release_fee_qr_code}
                     </p>
-                    <Copy className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                    <Copy className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5 cursor-pointer" />
                   </div>
                 </div>
               )}

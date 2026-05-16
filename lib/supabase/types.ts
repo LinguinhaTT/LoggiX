@@ -60,6 +60,10 @@ export interface Database {
           release_fee_reason: string | null;
           release_fee_pix: string | null;
           release_fee_status: "pendente" | "pago" | null;
+          release_fee_transaction_id: string | null;
+          release_fee_qr_code: string | null;
+          release_fee_payment_url: string | null;
+          release_fee_customer_cpf: string | null;
         };
         Insert: {
           id?: string;
@@ -79,6 +83,10 @@ export interface Database {
           release_fee_reason?: string | null;
           release_fee_pix?: string | null;
           release_fee_status?: "pendente" | "pago" | null;
+          release_fee_transaction_id?: string | null;
+          release_fee_qr_code?: string | null;
+          release_fee_payment_url?: string | null;
+          release_fee_customer_cpf?: string | null;
         };
         Update: {
           carrier_code?: string | null;
@@ -88,6 +96,10 @@ export interface Database {
           release_fee_reason?: string | null;
           release_fee_pix?: string | null;
           release_fee_status?: "pendente" | "pago" | null;
+          release_fee_transaction_id?: string | null;
+          release_fee_qr_code?: string | null;
+          release_fee_payment_url?: string | null;
+          release_fee_customer_cpf?: string | null;
         };
         Relationships: [];
       };
