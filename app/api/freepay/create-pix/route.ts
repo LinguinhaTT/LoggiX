@@ -74,9 +74,28 @@ export async function POST(req: NextRequest) {
     }
 
     // Extrai QR code e URL de pagamento da resposta
-    const transactionId = freepayData.id ?? freepayData.Id ?? freepayData.transaction_id;
-    const qrCode = freepayData.pix?.qr_code ?? freepayData.pix_qr_code ?? freepayData.qr_code ?? null;
-    const paymentUrl = freepayData.pix?.payment_url ?? freepayData.payment_url ?? freepayData.url ?? null;
+    const transactionId =
+      freepayData.id ?? freepayData.Id ?? freepayData.transaction_id ?? freepayData.TransactionId ?? null;
+
+    const pixData: Record<string, unknown> =
+      freepayData.pix ?? freepayData.Pix ?? freepayData.pix_data ?? {};
+
+    // Tenta nomes comuns; se nenhum funcionar, pega a string mais longa do objeto (o QR code é sempre o maior)
+    const knownQrKeys = ["qr_code", "QrCode", "emv", "Emv", "payload", "br_code", "copy_paste", "pix_code", "code", "qr_code_text"];
+    let qrCode: string | null =
+      knownQrKeys.map((k) => pixData[k]).find((v): v is string => typeof v === "string" && v.length > 10) ?? null;
+    if (!qrCode) {
+      qrCode =
+        Object.values(pixData)
+          .filter((v): v is string => typeof v === "string" && v.length > 20)
+          .sort((a, b) => b.length - a.length)[0] ?? null;
+    }
+
+    const knownUrlKeys = ["payment_url", "PaymentUrl", "url", "Url", "link", "qr_code_url", "QrCodeUrl"];
+    const paymentUrl: string | null =
+      knownUrlKeys.map((k) => pixData[k]).find((v): v is string => typeof v === "string" && v.length > 0) ??
+      knownUrlKeys.map((k) => freepayData[k]).find((v): v is string => typeof v === "string" && v.length > 0) ??
+      null;
 
     // Salva no banco
     const { error: updateError } = await supabase
@@ -97,7 +116,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Erro ao salvar no banco." }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, qr_code: qrCode, payment_url: paymentUrl, transaction_id: transactionId, _raw: freepayData });
+    return NextResponse.json({ success: true, qr_code: qrCode, payment_url: paymentUrl, transaction_id: transactionId, _pix: pixData, _raw: freepayData });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Erro interno." }, { status: 500 });
