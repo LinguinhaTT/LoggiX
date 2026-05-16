@@ -19,6 +19,7 @@ export function PayFeeButton({
   const [cpf, setCpf] = useState("");
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [rawData, setRawData] = useState<unknown>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
   const formatCpf = (value: string) => {
@@ -43,6 +44,7 @@ export function PayFeeButton({
         body: JSON.stringify({ tracking_id: trackingId, amount, reason, cpf: digits }),
       });
       const data = await res.json();
+      console.log("[FreePay raw response]", JSON.stringify(data, null, 2));
       if (!res.ok) {
         setErrorMsg(data.error ?? "Erro ao gerar PIX.");
         setStep("error");
@@ -50,6 +52,7 @@ export function PayFeeButton({
       }
       setQrCode(data.qr_code ?? null);
       setPaymentUrl(data.payment_url ?? null);
+      setRawData(data._raw ?? data);
       setStep("done");
     } catch {
       setErrorMsg("Erro de conexão. Tente novamente.");
@@ -160,9 +163,12 @@ export function PayFeeButton({
               )}
 
               {!paymentUrl && !qrCode && (
-                <p className="text-sm text-center text-gray-500">
-                  PIX criado. Aguarde as instruções do vendedor.
-                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">Resposta da FreePay (debug):</p>
+                  <pre className="text-xs text-gray-700 break-all whitespace-pre-wrap overflow-auto max-h-48">
+                    {JSON.stringify(rawData, null, 2)}
+                  </pre>
+                </div>
               )}
             </>
           )}
