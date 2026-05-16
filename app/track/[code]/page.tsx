@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { CarrierLogo } from "@/components/carrier-logo";
-import { AlertTriangle, Copy } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { PayFeeButton } from "@/components/pay-fee-button";
 import {
   Package,
   CheckCircle,
@@ -184,31 +185,11 @@ export default async function TrackingPublicPage({
                 </div>
               </div>
 
-              {/* QR Code */}
-              {tracking.release_fee_payment_url && (
-                <a
-                  href={tracking.release_fee_payment_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full py-3 rounded-xl text-center font-bold text-white text-sm"
-                  style={{ backgroundColor: "#f97316" }}
-                >
-                  Pagar agora →
-                </a>
-              )}
-
-              {/* Copia e cola */}
-              {tracking.release_fee_qr_code && (
-                <div className="bg-white rounded-xl p-3 border border-orange-200">
-                  <p className="text-xs font-semibold text-gray-500 mb-1.5">PIX Copia e Cola:</p>
-                  <div className="flex items-start gap-2">
-                    <p className="text-xs font-mono text-gray-700 flex-1 break-all leading-relaxed">
-                      {tracking.release_fee_qr_code}
-                    </p>
-                    <Copy className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5 cursor-pointer" />
-                  </div>
-                </div>
-              )}
+              <PayFeeButton
+                trackingId={tracking.id}
+                amount={tracking.release_fee}
+                reason={tracking.release_fee_reason ?? "Taxa de liberação"}
+              />
             </div>
           </div>
         )}
