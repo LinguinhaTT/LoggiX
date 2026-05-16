@@ -23,6 +23,7 @@ type Tracking = {
   release_fee: number | null;
   release_fee_reason: string | null;
   release_fee_pix: string | null;
+  release_fee_customer_cpf: string | null;
   release_fee_status: "pendente" | "pago" | null;
 };
 
