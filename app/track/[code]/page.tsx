@@ -104,7 +104,7 @@ export default async function TrackingPublicPage({
 
   const { data: tracking } = await supabase
     .from("trackings")
-    .select("id, code, carrier, recipient_name, status, created_at, updated_at, product_description, carrier_code, release_fee, release_fee_reason, release_fee_pix, release_fee_status")
+    .select("id, code, carrier, recipient_name, status, created_at, updated_at, product_description, carrier_code, release_fee, release_fee_reason, release_fee_pix, release_fee_status, release_fee_payment_url, release_fee_qr_code")
     .eq("code", code.toUpperCase())
     .single();
 
