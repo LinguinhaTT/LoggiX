@@ -136,6 +136,7 @@ export default function TrackingsPage() {
     }
 
     toast.success("PIX gerado! O cliente já pode ver o QR code.");
+    console.log("FreePay response:", JSON.stringify(data));
     setFeeModal(null);
     fetchTrackings();
   };

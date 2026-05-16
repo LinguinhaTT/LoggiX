@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Erro ao salvar no banco." }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, qr_code: qrCode, payment_url: paymentUrl, transaction_id: transactionId });
+    return NextResponse.json({ success: true, qr_code: qrCode, payment_url: paymentUrl, transaction_id: transactionId, _raw: freepayData });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Erro interno." }, { status: 500 });
