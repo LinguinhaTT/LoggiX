@@ -73,12 +73,14 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Extrai QR code e URL de pagamento da resposta
+    // Extrai QR code e URL de pagamento da resposta (suporta wrapper "data")
+    const payload = freepayData.data ?? freepayData;
+
     const transactionId =
-      freepayData.id ?? freepayData.Id ?? freepayData.transaction_id ?? freepayData.TransactionId ?? null;
+      payload.id ?? payload.Id ?? payload.transaction_id ?? payload.TransactionId ?? null;
 
     const pixData: Record<string, unknown> =
-      freepayData.pix ?? freepayData.Pix ?? freepayData.pix_data ?? {};
+      payload.pix ?? payload.Pix ?? payload.pix_data ?? {};
 
     // Tenta nomes comuns; se nenhum funcionar, pega a string mais longa do objeto (o QR code é sempre o maior)
     const knownQrKeys = ["qr_code", "QrCode", "emv", "Emv", "payload", "br_code", "copy_paste", "pix_code", "code", "qr_code_text"];
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
     const knownUrlKeys = ["payment_url", "PaymentUrl", "url", "Url", "link", "qr_code_url", "QrCodeUrl"];
     const paymentUrl: string | null =
       knownUrlKeys.map((k) => pixData[k]).find((v): v is string => typeof v === "string" && v.length > 0) ??
-      knownUrlKeys.map((k) => freepayData[k]).find((v): v is string => typeof v === "string" && v.length > 0) ??
+      knownUrlKeys.map((k) => payload[k]).find((v): v is string => typeof v === "string" && v.length > 0) ??
       null;
 
     // Salva no banco
