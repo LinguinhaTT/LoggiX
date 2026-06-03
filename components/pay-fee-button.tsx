@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Copy, QrCode, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import { QRCodeSVG } from "react-qr-code";
 
 type Step = "idle" | "cpf" | "loading" | "done" | "error";
 
@@ -148,6 +149,9 @@ export function PayFeeButton({
 
               {qrCode && (
                 <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+                  <div className="flex justify-center mb-3 bg-white rounded-xl p-3">
+                    <QRCodeSVG value={qrCode} size={180} />
+                  </div>
                   <p className="text-xs font-semibold text-gray-500 mb-1.5">PIX Copia e Cola:</p>
                   <p className="text-xs font-mono text-gray-700 break-all leading-relaxed mb-2">
                     {qrCode}
